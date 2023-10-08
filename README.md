@@ -1,5 +1,14 @@
 # tg-social-poster
-AWS Lambda to post Telegram channel posts to various social networks.
+AWS Lambda function to post Telegram channel posts to various social networks.
+
+## Installation
+1. Download the latest release zip file for your arch from [here](https://github.com/Mowsh/tg-social-poster/releases).
+2. Create a bot on Telegram using the [BotFather](https://t.me/BotFather) to get an API key.
+3. Put the bot in the channel you want to post from.
+3. Create an Lambda in AWS, and upload the zip archive as the source.
+4. Create an API Gateway in AWS, and have it trigger the Lambda.
+5. Use Telegram's [`setWebhook`](https://core.telegram.org/bots/api#setwebhook) API to point the bot at your API Gateway URL.
+6. Fill in the required configuration below, and any configuration for social media platforms you want to use.
 
 ## Configuration
 This bot is configured through environment variables on the Lambda.
