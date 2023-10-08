@@ -25,6 +25,9 @@ class MastodonModule(SocialModuleInterface):
                 media_ids = [media['id']]
 
             mastodon.status_post(text, media_ids=media_ids)
+
+            if photo is not None:
+                photo.close()
         except Exception as error:
             print("Mastodon error", error)
         

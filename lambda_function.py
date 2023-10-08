@@ -18,10 +18,10 @@ def get_photo_file(photo):
     file_response = requests.get(f"https://api.telegram.org/bot{tg_api_key}/getFile?file_id={photo['file_id']}")
     file = file_response.json()
     image_response = requests.get(f"https://api.telegram.org/file/bot{tg_api_key}/{file['result']['file_path']}")
-    return io.BytesIO(image_response.content), file['result']['file_path'].split('/')[-1]
+    return image_response.content, file['result']['file_path'].split('/')[-1]
 
 async def post(modules, text, photo, filename):
-    tasks = [module.post(text, photo, filename) for module in modules]
+    tasks = [module.post(text, io.BytesIO(photo) if photo is not None else None, filename) for module in modules]
     return await asyncio.gather(*tasks)
 
 def lambda_handler(event, context):
@@ -55,9 +55,6 @@ def lambda_handler(event, context):
 
         loop = asyncio.get_event_loop()
         loop.run_until_complete(post(modules, message_text, photo_file, photo_filename))
-
-        if photo_file is not None:
-            photo_file.close()
 
     return {
         'statusCode': 200

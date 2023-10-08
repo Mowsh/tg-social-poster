@@ -27,6 +27,9 @@ class TwitterModule(SocialModuleInterface):
                 media_ids = [media.media_id]
             
             client.create_tweet(text=text, media_ids=media_ids)
+
+            if photo is not None:
+                photo.close()
         except Exception as error:
             print("Twitter error", error)
             
