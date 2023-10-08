@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class SocialInterface(ABC):
+class SocialModuleInterface(ABC):
     @abstractmethod
     async def post(self, text, photo, filename):
         pass

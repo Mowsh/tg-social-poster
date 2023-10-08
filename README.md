@@ -17,3 +17,12 @@ Set the following environment variables:
 - `X_BEARER_TOKEN` - User bearer token
 - `X_ACCESS_TOKEN` - User access token.  Ensure user has read/write privileges
 - `X_ACCESS_TOKEN_SECRET` - User access token secret.  Ensure user has read/write privileges
+
+### Mastodon (Optional)
+
+Set the following environment variables:
+
+- `MASTODON_CLIENT_ID` - App client ID
+- `MASTODON_CLIENT_SECRET` - App client secret
+- `MASTODON_ACCESS_TOKEN` - Your access token
+- `MASTODON_BASE_URL` - Your Mastodon instance's URL

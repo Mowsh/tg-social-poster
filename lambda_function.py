@@ -3,12 +3,14 @@ import os
 import asyncio
 import io
 import requests
-from social_modules.twitter import Twitter
+from social_modules.twitter import TwitterModule
+from social_modules.mastodon import MastodonModule
 
 tg_api_key = os.environ.get('TG_API_KEY')
 channel_id = int(os.environ.get('CHANNEL_ID'))
 
 tweepy_access_token = os.environ.get('X_ACCESS_TOKEN')
+mastodon_client_id = os.environ.get('MASTODON_CLIENT_ID')
 
 def get_photo_file(photo):
     file_response = requests.get(f"https://api.telegram.org/bot{tg_api_key}/getFile?file_id={photo['file_id']}")
@@ -26,7 +28,10 @@ def lambda_handler(event, context):
     modules = []
 
     if tweepy_access_token is not None:
-        modules.append(Twitter())
+        modules.append(TwitterModule())
+
+    if mastodon_client_id is not None:
+        modules.append(MastodonModule())
     
     if 'channel_post' in tg_event and tg_event['channel_post']['chat']['id'] == channel_id:
         # Text-only messages will use the 'text' key
