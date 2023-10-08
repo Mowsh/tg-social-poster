@@ -16,6 +16,7 @@ This bot is configured through environment variables on the Lambda.
 ### Basic
 - `TG_API_KEY` - Telegram bot's full API key (required)
 - `CHANNEL_ID` - Channel ID for this bot to copy messages from (required)
+- `IGNORE_STRING` - If your post contains this string, the bot will ignore it and not post it to any social networks.
 
 ### X/Twitter (Optional)
 Set the following environment variables:
@@ -45,3 +46,7 @@ Set the following environment variables:
 First, pull dependencies for your Lambda's arch, as described [here](https://docs.aws.amazon.com/lambda/latest/dg/python-package.html#python-package-native-libraries).
 
 Then run ./zip.sh in the project root to create a function.zip which can be uploaded to AWS Lambda.
+
+## Limitations
+- This is not able to post more than one photo at a time, because albums come through as multiple callbacks and Lambdas are stateless by design, so no way of tracking when an album has finished being sent.
+- Videos are currently not supported, Bluesky doesn't allow posting them anyway.

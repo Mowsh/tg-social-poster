@@ -9,6 +9,7 @@ from social_modules.bluesky import BlueskyModule
 
 tg_api_key = os.environ.get('TG_API_KEY')
 channel_id = int(os.environ.get('CHANNEL_ID'))
+ignore_string = os.environ.get('IGNORE_STRING')
 
 tweepy_access_token = os.environ.get('X_ACCESS_TOKEN')
 mastodon_client_id = os.environ.get('MASTODON_CLIENT_ID')
@@ -47,8 +48,23 @@ def lambda_handler(event, context):
         if photo_file is not None:
             message_text = tg_event['channel_post']['caption'] if 'caption' in tg_event['channel_post'] else message_text
 
+        # Ignore messages containing ignore string if configured
+        if message_text is not None and ignore_string is not None and ignore_string in message_text:
+            print ("Ignoring post because it contains the ignore string")
+            return {
+                'statusCode': 200
+            }
+
+        # Ignore messages that are part of an album
+        if 'media_group_id' in tg_event['channel_post']:
+            print ("Ignoring post because it is part of an album")
+            return {
+                'statusCode': 200
+            }
+
         # Don't do anything if no text or photo
         if message_text is None and photo_file is None:
+            print ("Ignoring post because it has no text or photo")
             return {
                 'statusCode': 200
             }
