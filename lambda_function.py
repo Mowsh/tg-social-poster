@@ -5,12 +5,14 @@ import io
 import requests
 from social_modules.twitter import TwitterModule
 from social_modules.mastodon import MastodonModule
+from social_modules.bluesky import BlueskyModule
 
 tg_api_key = os.environ.get('TG_API_KEY')
 channel_id = int(os.environ.get('CHANNEL_ID'))
 
 tweepy_access_token = os.environ.get('X_ACCESS_TOKEN')
 mastodon_client_id = os.environ.get('MASTODON_CLIENT_ID')
+bluesky_handle = os.environ.get('BLUESKY_HANDLE')
 
 def get_photo_file(photo):
     file_response = requests.get(f"https://api.telegram.org/bot{tg_api_key}/getFile?file_id={photo['file_id']}")
@@ -33,6 +35,9 @@ def lambda_handler(event, context):
     if mastodon_client_id is not None:
         modules.append(MastodonModule())
     
+    if bluesky_handle is not None:
+        modules.append(BlueskyModule())
+
     if 'channel_post' in tg_event and tg_event['channel_post']['chat']['id'] == channel_id:
         # Text-only messages will use the 'text' key
         message_text = tg_event['channel_post']['text'] if 'text' in tg_event['channel_post'] else None
@@ -41,6 +46,12 @@ def lambda_handler(event, context):
         photo_file, photo_filename = get_photo_file(tg_event['channel_post']['photo'][-1]) if 'photo' in tg_event['channel_post'] else (None, None)
         if photo_file is not None:
             message_text = tg_event['channel_post']['caption'] if 'caption' in tg_event['channel_post'] else message_text
+
+        # Don't do anything if no text or photo
+        if message_text is None and photo_file is None:
+            return {
+                'statusCode': 200
+            }
 
         loop = asyncio.get_event_loop()
         loop.run_until_complete(post(modules, message_text, photo_file, photo_filename))
