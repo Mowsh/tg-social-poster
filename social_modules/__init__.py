@@ -1,0 +1,1 @@
+# Required by Lambda zip deployment

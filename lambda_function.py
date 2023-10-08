@@ -1,34 +1,47 @@
 import json
 import os
-import tweepy
+import asyncio
+import io
+import requests
+from social_modules.twitter import Twitter
 
 tg_api_key = os.environ.get('TG_API_KEY')
 channel_id = int(os.environ.get('CHANNEL_ID'))
 
-tweepy_consumer_key = os.environ.get('X_CONSUMER_KEY')
-tweepy_consumer_secret = os.environ.get('X_CONSUMER_SECRET')
-tweepy_bearer_token = os.environ.get('X_BEARER_TOKEN')
 tweepy_access_token = os.environ.get('X_ACCESS_TOKEN')
-tweepy_access_token_secret = os.environ.get('X_ACCESS_TOKEN_SECRET')
+
+def get_photo_file(photo):
+    file_response = requests.get(f"https://api.telegram.org/bot{tg_api_key}/getFile?file_id={photo['file_id']}")
+    file = file_response.json()
+    image_response = requests.get(f"https://api.telegram.org/file/bot{tg_api_key}/{file['result']['file_path']}")
+    return io.BytesIO(image_response.content), file['result']['file_path'].split('/')[-1]
+
+async def post(modules, text, photo, filename):
+    tasks = [module.post(text, photo, filename) for module in modules]
+    return await asyncio.gather(*tasks)
 
 def lambda_handler(event, context):
     tg_event = json.loads(event['body'])
     print(tg_event)
+    modules = []
+
+    if tweepy_access_token is not None:
+        modules.append(Twitter())
     
     if 'channel_post' in tg_event and tg_event['channel_post']['chat']['id'] == channel_id:
-        message_text = tg_event['channel_post']['text'] if 'text' in tg_event['channel_post'] else ""
-        
-        auth = tweepy.OAuthHandler(tweepy_consumer_key, tweepy_consumer_secret)
-        auth.set_access_token(tweepy_access_token, tweepy_access_token_secret)
+        # Text-only messages will use the 'text' key
+        message_text = tg_event['channel_post']['text'] if 'text' in tg_event['channel_post'] else None
 
-        # api = tweepy.API(auth)
-        client = tweepy.Client(bearer_token=tweepy_bearer_token,
-                access_token=tweepy_access_token,
-                access_token_secret=tweepy_access_token_secret,
-                consumer_key=tweepy_consumer_key,
-                consumer_secret=tweepy_consumer_secret)
+        # Images will use 'caption'.  Get the image as a file
+        photo_file, photo_filename = get_photo_file(tg_event['channel_post']['photo'][-1]) if 'photo' in tg_event['channel_post'] else (None, None)
+        if photo_file is not None:
+            message_text = tg_event['channel_post']['caption'] if 'caption' in tg_event['channel_post'] else message_text
 
-        client.create_tweet(text=message_text)
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(post(modules, message_text, photo_file, photo_filename))
+
+        if photo_file is not None:
+            photo_file.close()
 
     return {
         'statusCode': 200
